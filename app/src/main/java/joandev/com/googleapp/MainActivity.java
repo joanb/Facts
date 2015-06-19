@@ -3,6 +3,7 @@ package joandev.com.googleapp;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
@@ -19,10 +20,13 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class MainActivity extends Activity implements View.OnClickListener {
-
+public class MainActivity extends Activity implements View.OnClickListener, Dialog.OnCompleteListener {
     TextView tv;
+    String result[];
 
+    String type = "";
+    String url = "";
+    int typeCase;
     CardView dateCard;
     CardView dateCard2;
     CardView dateCard3;
@@ -51,35 +55,25 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     @Override
     public void onClick(View view) {
-        String type = "";
-        String number;
-        String url = "";
         switch (view.getId()) {
             case R.id.card_view:
                 type = factType[0];
-                String day = "7";
-                String month = "8";
-                url = "https://numbersapi.p.mashape.com/" + month + "/" + day + "/date?fragment=true&json=true";
+                typeCase = 0;
                 break;
             case R.id.card_view2:
                 type = factType[1];
-                number = "1";
-                url = "https://numbersapi.p.mashape.com/" + number +"/math?fragment=true&json=true";
+                typeCase = 1;
                 break;
             case R.id.card_view3:
                 type = factType[3];
-                number = "4";
-                String alt = "floor";
-                url = "https://numbersapi.p.mashape.com/" + number + "/trivia?fragment=true&json=true&notfound=floor";
+                typeCase = 3;
                 break;
             case R.id.card_view4:
                 type = factType[4];
-                String year = "2000";
-                 url = "https://numbersapi.p.mashape.com/"+ year + "/year?fragment=true&json=true";
+                typeCase = 4;
                 break;
         }
         dialogShow(type);
-        callApi(url);
     }
 
     private void dialogShow(String id) {
@@ -89,8 +83,19 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     private void callApi(String url) {
-        Api api = new Api();
-        api.execute(url);
+        Intent intent;
+        Bundle mBundle = new Bundle();
+        mBundle.putString("url", url);
+        mBundle.putString("type", type);
+        mBundle.putStringArray("params", result);
+
+        intent = new Intent(Intent.ACTION_SYNC, null, this, MyService.class);
+        intent.putExtras(mBundle);
+        startService(intent);
+//        Log.v("params", url);
+//        Api api = new Api();
+//        api.execute(url);
+        startActivity(new Intent(this, DetailActivity.class));
     }
 
     @Override
@@ -109,10 +114,33 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
-//            callApi();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onComplete(String[] res) {
+        result = res;
+        setUrls();
+    }
+
+    private void setUrls() {
+        switch (typeCase) {
+            case 0:
+                url = "https://numbersapi.p.mashape.com/" + result[1] + "/" + result[0] + "/date?fragment=true&json=true";
+                break;
+            case 1:
+                url = "https://numbersapi.p.mashape.com/" + result[0] +"/math?fragment=true&json=true";
+                break;
+            case 3:
+                url = "https://numbersapi.p.mashape.com/" + result[0] + "/trivia?fragment=true&json=true&notfound=floor";
+                break;
+            case 4:
+                url = "https://numbersapi.p.mashape.com/"+ result[0] + "/year?fragment=true&json=true";
+                break;
+        }
+        callApi(url);
     }
 
 

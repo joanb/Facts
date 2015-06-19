@@ -1,5 +1,6 @@
 package joandev.com.googleapp;
 
+import android.app.Activity;
 import android.app.DialogFragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * Created by joanbarroso on 16/6/15.
@@ -50,12 +52,10 @@ public class Dialog extends DialogFragment implements View.OnClickListener{
 
         id = getArguments().getString("id");
         textView5.setText(id);
-
         if (id.equals("Date")){
             linearDate.setVisibility(View.VISIBLE);
             dTv.setText("day");
         }
-
         return  v;
     }
 
@@ -67,5 +67,35 @@ public class Dialog extends DialogFragment implements View.OnClickListener{
     @Override
     public void onClick(View view) {
         Log.v("params", "confirmed!!!!!!!!!");
+        boolean badEntry =  false;
+        String solution[] = new String [2];
+        if (number1.getText() != null){
+            solution[0] = number1.getText().toString();
+            if (id.equals("Date") && number2 != null) {
+                solution[1] = number2.getText().toString();
+            } else badEntry = true;
+            this.mListener.onComplete(solution);
+        }
+        else badEntry = true;
+        if (badEntry) Toast.makeText(getActivity().getApplicationContext(), "Fill the gap before confirmation, please", Toast.LENGTH_SHORT).show();
+        dismiss();
+    }
+
+
+    public static interface OnCompleteListener {
+        public abstract void onComplete(String[] res);
+    }
+
+    private OnCompleteListener mListener;
+
+    // make sure the Activity implemented it
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            this.mListener = (OnCompleteListener)activity;
+        }
+        catch (final ClassCastException e) {
+            throw new ClassCastException(activity.toString() + " must implement OnCompleteListener");
+        }
     }
 }

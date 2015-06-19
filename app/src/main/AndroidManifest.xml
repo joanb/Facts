@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="joandev.com.googleapp" >
 
-
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -19,6 +18,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".FactActivity"
+            android:label="@string/title_activity_fact" >
+        </activity>
+        <activity
+            android:name=".DetailActivity"
+            android:label="@string/title_activity_detail" >
+        </activity>
+        <service
+            android:name=".MyService"
+            android:exported="false"/>
+        <provider
+            android:authorities="joandev.com.googleapp.data"
+            android:name=".data.FactsProvider"></provider>
     </application>
 
 </manifest>
