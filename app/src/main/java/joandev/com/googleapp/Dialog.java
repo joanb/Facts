@@ -66,19 +66,23 @@ public class Dialog extends DialogFragment implements View.OnClickListener{
 
     @Override
     public void onClick(View view) {
-        Log.v("params", "confirmed!!!!!!!!!");
         boolean badEntry =  false;
         String solution[] = new String [2];
-        if (number1.getText() != null){
+        Log.v("number1", number1.getText().toString());
+        if (!number1.getText().toString().equals("")){
             solution[0] = number1.getText().toString();
-            if (id.equals("Date") && number2 != null) {
-                solution[1] = number2.getText().toString();
-            } else badEntry = true;
-            this.mListener.onComplete(solution);
+            if (id.equals("Date")){
+                if (!number2.getText().toString().equals("")){
+                    solution[1] = number2.getText().toString();
+                } else badEntry = true;
+            }
         }
         else badEntry = true;
         if (badEntry) Toast.makeText(getActivity().getApplicationContext(), "Fill the gap before confirmation, please", Toast.LENGTH_SHORT).show();
-        dismiss();
+        else {
+            this.mListener.onComplete(solution);
+            dismiss();
+        }
     }
 
 

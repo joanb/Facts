@@ -12,7 +12,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import joandev.com.googleapp.data.FactsContract;
 
@@ -21,7 +22,18 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
 
     private static final int DETAIL_LOADER = 0;
     private Uri mUri = FactsContract.FactEntry.CONTENT_URI;
-    static final String DETAIL_URI = "URI";
+    String type;
+    String params[];
+    TextView title;
+    TextView result;
+    TextView lastResult;
+    TextView olderResults;
+    String text;
+    String tit;
+    String old = "";
+    ScrollView scrollView = null;
+    String last = "None yet!";
+
 
 
     public DetailFragment() {
@@ -52,30 +64,57 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
 
-//        Bundle arguments = getArguments();
-//        if (arguments != null) {
-//            mUri = arguments.getParcelable(DetailFragment.DETAIL_URI);
-//        }
+        View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
+        result = (TextView) rootView.findViewById(R.id.resultTV);
+        title = (TextView) rootView.findViewById(R.id.titleResultTV);
+        if (getResources().getBoolean(R.bool.isTablet)){
+            olderResults = (TextView) rootView.findViewById(R.id.olderResultsTV);
+            lastResult = (TextView) rootView.findViewById(R.id.lastResult);
+        }
 
-        return inflater.inflate(R.layout.fragment_detail, container, false);
+        if (savedInstanceState != null) {
+            text = savedInstanceState.getString("text");
+            tit = savedInstanceState.getString("tit");
+            old = savedInstanceState.getString("old");
+            type = savedInstanceState.getString("type");
+            result.setText(text);
+            title.setText(tit);
+            if (getResources().getBoolean(R.bool.isTablet)){
+                olderResults.setText(old);
+                lastResult.setText(last);
+            }
+            last = savedInstanceState.getString("last");
+        }
+        else{
+            Bundle arguments = getArguments();
+            if (arguments != null) {
+                type = arguments.getString("type");
+                params = arguments.getStringArray("params");
+                Log.v("params", type);
+                Log.v("params", params[0]);
+                title.setText("Your " + type + " fact is");
+                if (getResources().getBoolean(R.bool.isTablet)) olderResults.setText("Last fact you already found: ");
+            }
+        }
+
+        if (getResources().getBoolean(R.bool.isTablet)) old = olderResults.getText().toString();
+        tit = title.getText().toString();
+
+        return rootView;
     }
 
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
-        Log.v("onactivitycreated", "Creamos, init loader. mUri : " + mUri);
         getLoaderManager().initLoader(DETAIL_LOADER, null, this);
         super.onActivityCreated(savedInstanceState);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        Log.v("cursorloader", "enntro");
-        if ( null != mUri ) {
-            Log.v("cursorloader", "enntro2");
 
-            // Now create and return a CursorLoader that will take care of
-            // creating a Cursor for the data being displayed.
+        String args[] = {type};
+        if ( null != mUri ) {
             CursorLoader c = new CursorLoader(
                     getActivity(),
                     mUri,
@@ -84,23 +123,56 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                     null,
                     null
             );
-            Log.v("cursorloader",c.toString());
             return  c;
+
         }
         return null;
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if (data != null && data.moveToFirst()) {
+        if (data != null) {
             // Read weather condition ID from cursor
-            String text = data.getString(1);
-            Toast.makeText(getActivity(),text, Toast.LENGTH_SHORT).show();
+            while (data.moveToNext()) {
+                result.setText(data.getString(COL_TEXT));
+                switch(type) {
+                    case "Date":
+                        result.setText("In " + data.getString(COL_DAY)+ "/" + data.getString(COL_MONTH) + "/"+ data.getString(COL_YEAR)+  " ," + data.getString(COL_TEXT));
+                        break;
+                    case "Year":
+                        result.setText("In " + data.getString(COL_YEAR) + " " + data.getString(COL_TEXT));
+                    break;
+                    case "Trivia":
+                        result.setText(data.getString(COL_TRIVIA) + " is " + data.getString(COL_TEXT));
+
+                    break;
+                    case "Math":
+                        result.setText(data.getString(COL_MATH) + " is " + data.getString(COL_TEXT));
+                    break;
+                }
+                if (getResources().getBoolean(R.bool.isTablet) && !data.isLast()){
+                    last = result.getText().toString();
+                }
+                text = result.getText().toString();
+            }
+            if (getResources().getBoolean(R.bool.isTablet) && !data.isLast())
+                lastResult.setText(last);
+
         }
     }
 
     @Override
     public void onLoaderReset(Loader loader) {
 
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("text", text);
+        outState.putString("tit", tit);
+        outState.putString("old", old);
+        outState.putString("type",type);
+        outState.putString("last",last);
     }
 }

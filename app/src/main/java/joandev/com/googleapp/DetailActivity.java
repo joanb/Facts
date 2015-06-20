@@ -2,6 +2,7 @@ package joandev.com.googleapp;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -16,8 +17,9 @@ public class DetailActivity extends FragmentActivity {
             // Create the detail fragment and add it to the activity
             // using a fragment transaction.
 
-            Bundle arguments = new Bundle();
-            arguments.putParcelable(DetailFragment.DETAIL_URI, getIntent().getData());
+            Bundle arguments = getIntent().getExtras();
+            Log.v("params", arguments.getString("type"));
+
 
             DetailFragment fragment = new DetailFragment();
             fragment.setArguments(arguments);

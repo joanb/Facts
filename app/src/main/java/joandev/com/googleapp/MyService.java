@@ -99,7 +99,11 @@ public class MyService extends IntentService {
             }
         }
         try {
+            Log.v("JSOOON", "Entrando al JSON parser");
+            Log.v("JSOOON", forecastJsonStr);
+
             getDataFromJson(forecastJsonStr, type);
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -107,21 +111,8 @@ public class MyService extends IntentService {
 
     private void getDataFromJson(String NewzJsonStr, String type) throws JSONException {
 
-        // Now we have a String representing the complete forecast in JSON Format.
-        // Fortunately parsing is easy:  constructor takes the JSON string and converts it
-        // into an Object hierarchy for us.
-
-        // These are the names of the JSON objects that need to be extracted.
-
-        final String TYPE = "type";
-        final String DAY = "day";
-        final String MONTH = "month";
-        final String MATH_NUMBER = "math_number";
-        final String TRIVIA_NUMBER = "trivia_number";
-
-        // Weather information.  Each day's forecast info is an element of the "list" array.
         final String LIST = "results";
-
+            Log.v("JSOOON", NewzJsonStr);
             JSONObject facts = new JSONObject(NewzJsonStr);
 
             // Insert the new weather information into the database
@@ -138,7 +129,7 @@ public class MyService extends IntentService {
             facts.get("text");
             facts.get("text");
             switch (type) {
-                case "Data":
+                case "Date":
                     day = params[0];
                     month = params[1];
                     year = facts.getString("year");
@@ -154,16 +145,16 @@ public class MyService extends IntentService {
                     break;
 
             }
-        text = facts.getString("text");
-                contentValues.put(FactsContract.FactEntry.COLUMN_DAY, day);
-                contentValues.put(FactsContract.FactEntry.COLUMN_MONTH, month);
-                contentValues.put(FactsContract.FactEntry.COLUMN_YEAR, year);
-                contentValues.put(FactsContract.FactEntry.COLUMN_MATH_NUMBER, math_number);
-                contentValues.put(FactsContract.FactEntry.COLUMN_TRIVIA_NUMBER, trivia_number);
-                contentValues.put(FactsContract.FactEntry.COLUMN_TYPE, type);
-                contentValues.put(FactsContract.FactEntry.COLUMN_TEXT, text);
+            text = facts.getString("text");
+            contentValues.put(FactsContract.FactEntry.COLUMN_DAY, day);
+            contentValues.put(FactsContract.FactEntry.COLUMN_MONTH, month);
+            contentValues.put(FactsContract.FactEntry.COLUMN_YEAR, year);
+            contentValues.put(FactsContract.FactEntry.COLUMN_MATH_NUMBER, math_number);
+            contentValues.put(FactsContract.FactEntry.COLUMN_TRIVIA_NUMBER, trivia_number);
+            contentValues.put(FactsContract.FactEntry.COLUMN_TYPE, type);
+            contentValues.put(FactsContract.FactEntry.COLUMN_TEXT, text);
 
-                getApplicationContext().getContentResolver().insert(FactsContract.FactEntry.CONTENT_URI, contentValues);
+            getApplicationContext().getContentResolver().insert(FactsContract.FactEntry.CONTENT_URI, contentValues);
 
             }
         }
