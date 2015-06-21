@@ -1,6 +1,8 @@
 package joandev.com.googleapp;
 
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -33,6 +35,7 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
     String old = "";
     ScrollView scrollView = null;
     String last = "None yet!";
+    SharedPreferences preferences;
 
 
 
@@ -69,31 +72,34 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         title = (TextView) rootView.findViewById(R.id.titleResultTV);
         if (getResources().getBoolean(R.bool.isTablet)){
             olderResults = (TextView) rootView.findViewById(R.id.olderResultsTV);
+            olderResults.setText("Last fact you already found: ");
+            preferences = getActivity().getApplicationContext().getSharedPreferences("lastResult", Context.MODE_PRIVATE);
+            last = preferences.getString("last", "NONE");
             lastResult = (TextView) rootView.findViewById(R.id.lastResult);
+            lastResult.setText(last);
+
         }
 
         if (savedInstanceState != null) {
             text = savedInstanceState.getString("text");
             tit = savedInstanceState.getString("tit");
-            old = savedInstanceState.getString("old");
+//            old = savedInstanceState.getString("old");
             type = savedInstanceState.getString("type");
             result.setText(text);
             title.setText(tit);
             if (getResources().getBoolean(R.bool.isTablet)){
-                olderResults.setText(old);
-                lastResult.setText(last);
+//                lastResult.setText(last);
             }
-            last = savedInstanceState.getString("last");
         }
         else{
             Bundle arguments = getArguments();
             if (arguments != null) {
                 type = arguments.getString("type");
                 params = arguments.getStringArray("params");
-                Log.v("params", type);
-                Log.v("params", params[0]);
                 title.setText("Your " + type + " fact is");
-                if (getResources().getBoolean(R.bool.isTablet)) olderResults.setText("Last fact you already found: ");
+                if (getResources().getBoolean(R.bool.isTablet)){
+//                    lastResult.setText(last);
+                }
             }
         }
 
@@ -150,13 +156,35 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
                         result.setText(data.getString(COL_MATH) + " is " + data.getString(COL_TEXT));
                     break;
                 }
-                if (getResources().getBoolean(R.bool.isTablet) && !data.isLast()){
-                    last = result.getText().toString();
-                }
+
                 text = result.getText().toString();
             }
-            if (getResources().getBoolean(R.bool.isTablet) && !data.isLast())
-                lastResult.setText(last);
+            if (getResources().getBoolean(R.bool.isTablet) && data.moveToPrevious() && data.moveToPrevious()){
+                String s = data.getString(COL_TYPE);
+                switch(s) {
+                    case "Date":
+                        last = "In " + data.getString(COL_DAY)+ "/" + data.getString(COL_MONTH) + "/"+ data.getString(COL_YEAR)+  " ," + data.getString(COL_TEXT);
+                        break;
+                    case "Year":
+                        last = "In " + data.getString(COL_YEAR) + " " + data.getString(COL_TEXT);
+                        break;
+                    case "Trivia":
+                        last = data.getString(COL_TRIVIA) + " is " + data.getString(COL_TEXT);
+
+                        break;
+                    case "Math":
+                        last = data.getString(COL_MATH) + " is " + data.getString(COL_TEXT);
+                        break;
+                }
+
+
+                if (getResources().getBoolean(R.bool.isTablet)) {
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putString("last", last);
+                    editor.apply();
+                    lastResult.setText(last);
+                }
+            }
 
         }
     }
@@ -174,5 +202,18 @@ public class DetailFragment extends Fragment implements LoaderManager.LoaderCall
         outState.putString("old", old);
         outState.putString("type",type);
         outState.putString("last",last);
+    }
+
+    @Override
+    public void onDestroy() {
+
+        Log.v("Destroy", "destroying");
+        super.onDestroy();
+    }
+
+    @Override
+    public void onDetach() {
+        Log.v("Destroy", "detaching");
+        super.onDetach();
     }
 }

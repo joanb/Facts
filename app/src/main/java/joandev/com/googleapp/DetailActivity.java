@@ -51,4 +51,10 @@ public class DetailActivity extends FragmentActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+    @Override
+    public void onDestroy() {
+        Log.v("Destroy", "destroying activity");
+        super.onDestroy();
+    }
 }
